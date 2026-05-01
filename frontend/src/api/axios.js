@@ -2,11 +2,18 @@ import axios from 'axios';
 
 // ─── Base URL ────────────────────────────────────────────────────────────────
 // VITE_API_URL must be set in Vercel's Environment Variables dashboard.
-// Example: https://bookshelf-4brs.onrender.com/api
+// Value: https://bookshelf-4brs.onrender.com/api  (NO trailing slash)
 //
 // During local dev (npm run dev) this falls back to the Vite proxy at '/api',
 // which proxies to http://localhost:8000/api via vite.config.js.
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+// Strip trailing slash defensively — if entered as ".../api/" it would break
+// axios path joining (axios drops the base path when route starts with /)
+const RAW_URL = import.meta.env.VITE_API_URL || '/api';
+const BASE_URL = RAW_URL.replace(/\/+$/, '');
+
+// Always log the active API base so you can confirm it in the browser console
+console.log('[api] BASE_URL =', BASE_URL);
 
 if (!import.meta.env.VITE_API_URL) {
   console.warn(

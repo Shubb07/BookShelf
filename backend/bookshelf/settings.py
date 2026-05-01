@@ -109,7 +109,13 @@ SIMPLE_JWT = {
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
-     "https://book-shelf-eta-nine.vercel.app"
+    "https://book-shelf-eta-nine.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+# Also allow Vercel preview deploy URLs (e.g. book-shelf-git-main-xxx.vercel.app)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://book-shelf.*\.vercel\.app$",
 ]
 CORS_ALLOW_CREDENTIALS = True
 

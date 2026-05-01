@@ -6,3 +6,4 @@ python-decouple
 requests
 psycopg2-binary
 django-redis
+gunicorn

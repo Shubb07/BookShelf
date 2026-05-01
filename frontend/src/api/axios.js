@@ -1,27 +1,34 @@
 import axios from 'axios';
 
 // ─── Base URL ────────────────────────────────────────────────────────────────
-// VITE_API_URL must be set in Vercel's Environment Variables dashboard.
-// Value: https://bookshelf-4brs.onrender.com/api  (NO trailing slash)
+// In production (Vercel): set VITE_API_URL in Project → Settings → Env Vars
+//   Value: https://bookshelf-4brs.onrender.com/api   ← NO trailing slash
 //
-// During local dev (npm run dev) this falls back to the Vite proxy at '/api',
-// which proxies to http://localhost:8000/api via vite.config.js.
+// In local dev (npm run dev): leave VITE_API_URL unset.
+//   Vite proxy in vite.config.js will forward /api → http://localhost:8000/api
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Strip trailing slash defensively — if entered as ".../api/" it would break
-// axios path joining (axios drops the base path when route starts with /)
-const RAW_URL = import.meta.env.VITE_API_URL || '/api';
-const BASE_URL = RAW_URL.replace(/\/+$/, '');
+const isDev = import.meta.env.DEV; // true during `npm run dev`, false in build
 
-// Always log the active API base so you can confirm it in the browser console
-console.log('[api] BASE_URL =', BASE_URL);
+// Grab the env var and strip any accidental trailing slash
+const ENV_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
 
-if (!import.meta.env.VITE_API_URL) {
-  console.warn(
-    '[api] VITE_API_URL is not set — falling back to relative "/api".\n' +
-    'This will break in production. Set VITE_API_URL in Vercel → Settings → Environment Variables.'
+// In production, VITE_API_URL MUST be set — abort loudly so it's obvious
+if (!isDev && !ENV_URL) {
+  throw new Error(
+    '[BookShelf] CRITICAL: VITE_API_URL is not set.\n' +
+    'Go to Vercel → Project → Settings → Environment Variables and add:\n' +
+    '  VITE_API_URL = https://bookshelf-4brs.onrender.com/api\n' +
+    'Then redeploy.'
   );
 }
 
+// Local dev falls back to the Vite proxy path; prod always uses the full URL
+const BASE_URL = ENV_URL || '/api';
+
+console.log(`[api] mode=${isDev ? 'dev' : 'prod'} | BASE_URL=${BASE_URL}`);
+
+// ─── Axios instance ───────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
@@ -33,6 +40,8 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Debug: log every outgoing request URL so you can verify in DevTools
+  console.debug(`[api] ${config.method?.toUpperCase()} ${config.baseURL}/${config.url}`);
   return config;
 });
 
@@ -46,7 +55,6 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          // Use BASE_URL so this also hits the Render backend, not Vercel
           const res = await axios.post(`${BASE_URL}/auth/token/refresh/`, { refresh });
           localStorage.setItem('access_token', res.data.access);
           original.headers.Authorization = `Bearer ${res.data.access}`;

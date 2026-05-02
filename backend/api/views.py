@@ -27,13 +27,20 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(
-            {'message': 'User registered successfully.', 'username': user.username},
-            status=status.HTTP_201_CREATED
-        )
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            user = serializer.save()
+            return Response(
+                {'message': 'User registered successfully.', 'username': user.username},
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as exc:
+            return Response(
+                {'detail': 'Registration failed. Please try again.', 'error': str(exc)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class LoginView(TokenObtainPairView):

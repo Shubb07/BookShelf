@@ -23,9 +23,14 @@ if (!isDev && !ENV_URL) {
   );
 }
 
-// Local dev falls back to the Vite proxy path; prod always uses the full URL
-// NOTE: VITE_API_URL must already include /api, e.g. https://bookshelf-4brs.onrender.com/api
-const BASE_URL = ENV_URL ?? '/api';
+// Normalize: strip trailing slash, then ensure /api suffix
+// Works whether VITE_API_URL is set to:
+//   https://bookshelf-4brs.onrender.com         → appends /api
+//   https://bookshelf-4brs.onrender.com/api     → keeps as-is
+//   https://bookshelf-4brs.onrender.com/api/    → strips slash, keeps /api
+const BASE_URL = ENV_URL
+  ? ENV_URL.endsWith('/api') ? ENV_URL : `${ENV_URL}/api`
+  : '/api';
 
 console.log(`[api] mode=${isDev ? 'dev' : 'prod'} | BASE_URL=${BASE_URL}`);
 

@@ -12,6 +12,11 @@ export default function ReaderPage() {
   const [readerData, setReaderData] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
+  // Real progress from the backend shelf
+  const [currentPage, setCurrentPage] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [shelfBookId, setShelfBookId] = useState(null);
+
   const bookTitle = state?.title || 'Book';
   const bookAuthor = state?.authors || '';
 
@@ -44,9 +49,20 @@ export default function ReaderPage() {
       .finally(() => setLoading(false));
   }, [id, bookTitle, bookAuthor, state]);
 
-  // Mocked progress for UI presentation
-  const currentPage = 45;
-  const mockPercent = 15;
+  // Fetch real progress from the user's shelf for this specific book
+  useEffect(() => {
+    if (!id) return;
+    api.get('shelf/')
+      .then(res => {
+        const match = res.data.find(b => b.google_book_id === id);
+        if (match) {
+          setShelfBookId(match.id);
+          setCurrentPage(match.total_pages_read || 0);
+          setProgressPercent(match.progress_percent || 0);
+        }
+      })
+      .catch(() => {}); // silently ignore if not on shelf
+  }, [id]);
 
   return (
     <div style={{
@@ -103,7 +119,7 @@ export default function ReaderPage() {
               background: 'var(--bg-base)', padding: '6px 12px', borderRadius: '100px',
               border: '1px solid var(--border-subtle)'
             }}>
-              Page {currentPage} &bull; {mockPercent}% completed
+              Page {currentPage} &bull; {progressPercent}% completed
             </span>
           </div>
         )}

@@ -26,9 +26,8 @@ export default function BookCard({ book, onAddToShelf, shelfStatus, onStatusChan
   const isOL = book.source === 'openlibrary';
   const isReadable = isOL && book.readable;
   
-  // Progress estimation mock (if backend tracking isn't absolute, we gracefully omit or fake for visual spec)
-  // For actual production, pull from `book.progress_percent`
-  const progressPercent = book.progress_percent || (shelfStatus === 'reading' ? 45 : 0);
+  // Use real progress from backend (total_pages_read / page_count); 0 if not yet tracked
+  const progressPercent = book.progress_percent || 0;
 
   const handleClick = () => {
     navigate(`/book/${googleBookId}`, { state: { book } });

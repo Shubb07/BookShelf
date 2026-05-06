@@ -17,10 +17,6 @@ from .serializers import (
 GOOGLE_BOOKS_URL = 'https://www.googleapis.com/books/v1/volumes'
 
 
-# ─────────────────────────────────────────────
-# AUTH
-# ─────────────────────────────────────────────
-
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer

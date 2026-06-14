@@ -5,7 +5,7 @@ import Toast from '../components/Toast';
 
 const SOURCES = [
   { id: 'google', label: 'Google Books' },
-  { id: 'openlibrary', label: '📖 Read Free' },
+  { id: 'gutenberg', label: '📖 Read Free' },
 ];
 
 export default function SearchPage() {
@@ -16,6 +16,7 @@ export default function SearchPage() {
   const [toast, setToast] = useState(null);
   const [adding, setAdding] = useState(null);
   const [source, setSource] = useState('google');
+  const isReadFree = source === 'gutenberg';
 
   const handleSearch = useCallback(async (e) => {
     e?.preventDefault();
@@ -23,18 +24,11 @@ export default function SearchPage() {
     setLoading(true);
     setSearched(true);
     try {
-      const endpoint = source === 'openlibrary'
-        ? `books/open-library/search/?q=${encodeURIComponent(query)}`
+      const endpoint = source === 'gutenberg'
+        ? `books/gutenberg/search/?q=${encodeURIComponent(query)}`
         : `books/search/?q=${encodeURIComponent(query)}`;
       const res = await api.get(endpoint);
-      let items = res.data.results || [];
-      // The "Read Free" tab only makes sense for books you can actually read in
-      // full with no login. "borrowable" books require an Archive.org account and
-      // only show a limited preview, so we keep just the public-domain ones.
-      if (source === 'openlibrary') {
-        items = items.filter(b => b.readable && b.ebook_access === 'public');
-      }
-      setResults(items);
+      setResults(res.data.results || []);
     } catch {
       setToast({ message: 'Search failed. Check your connection.', type: 'error' });
     } finally {
@@ -80,8 +74,8 @@ export default function SearchPage() {
           Search Books
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>
-          {source === 'openlibrary'
-            ? 'Books you can read for free right now, via Open Library'
+          {isReadFree
+            ? 'Read full classics for free, right here — powered by Project Gutenberg'
             : 'Find any book and add it to your library'}
         </p>
       </div>
@@ -115,7 +109,7 @@ export default function SearchPage() {
             id="search-input"
             type="text"
             className="input-field"
-            placeholder={source === 'openlibrary' ? 'Try "Pride and Prejudice", "Science"...' : 'Try "Dune", "Harry Potter"...'}
+            placeholder={isReadFree ? 'Try "Pride and Prejudice", "Sherlock Holmes"...' : 'Try "Dune", "Harry Potter"...'}
             value={query}
             onChange={e => setQuery(e.target.value)}
             style={{ flex: 1 }}
@@ -162,11 +156,11 @@ export default function SearchPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
-              {source === 'openlibrary' ? 'No free copies found' : 'No matches found'}
+              {isReadFree ? 'No free copies found' : 'No matches found'}
             </p>
             <p style={{ fontSize: '14px', maxWidth: '380px', textAlign: 'center', lineHeight: 1.5 }}>
-              {source === 'openlibrary'
-                ? 'Only public-domain books can be read free without an account. Modern books usually aren’t available — try searching Google Books to add it to your library instead.'
+              {isReadFree
+                ? 'Read Free only includes public-domain classics. Modern books usually aren’t available — search Google Books to add it to your library instead.'
                 : 'Check your spelling or try a broader term.'}
             </p>
           </div>
@@ -178,7 +172,7 @@ export default function SearchPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
             <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Start searching</p>
-            <p style={{ fontSize: '14px' }}>Powered by the {source === 'openlibrary' ? 'Open Library' : 'Google Books'} API.</p>
+            <p style={{ fontSize: '14px' }}>Powered by the {isReadFree ? 'Project Gutenberg' : 'Google Books'} API.</p>
           </div>
         )}
       </div>

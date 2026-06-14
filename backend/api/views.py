@@ -382,6 +382,72 @@ def dashboard(request):
 OPEN_LIBRARY_SEARCH_URL = 'https://openlibrary.org/search.json'
 OL_HEADERS = {'User-Agent': 'BookShelf/1.0 (bookshelf-app)'}
 
+GUTENDEX_URL = 'https://gutendex.com/books/'
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def gutenberg_search(request):
+    """Search Project Gutenberg (via Gutendex) for fully-free, readable books."""
+    query = request.query_params.get('q', '').strip()
+    if not query:
+        return Response({'error': 'Query parameter "q" is required.'}, status=400)
+
+    cache_key = f'gutenberg_{query.lower().replace(" ", "_")}'
+    cached = cache.get(cache_key)
+    if cached:
+        return Response({'results': cached, 'source': 'cache'})
+
+    try:
+        resp = requests.get(GUTENDEX_URL, params={'search': query}, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        return Response({'error': f'Gutenberg API error: {str(e)}'}, status=502)
+
+    books = []
+    for item in data.get('results', []):
+        formats = item.get('formats', {})
+
+        # Prefer the readable HTML edition; skip books that have no HTML to read
+        html_url = next(
+            (v for k, v in formats.items()
+             if k.startswith('text/html') and not v.endswith('.zip')),
+            None,
+        )
+        if not html_url:
+            continue
+
+        cover = next((v for k, v in formats.items() if k.startswith('image/')), '')
+
+        # Gutenberg lists authors as "Last, First" — flip to a natural reading order
+        author_names = []
+        for a in item.get('authors', []):
+            name = a.get('name', '')
+            if ', ' in name:
+                last, first = name.split(', ', 1)
+                name = f'{first} {last}'
+            author_names.append(name)
+
+        gid = item.get('id')
+        books.append({
+            'google_book_id': f'gutenberg_{gid}',
+            'title': item.get('title', 'Unknown Title'),
+            'authors': ', '.join(author_names) or 'Unknown Author',
+            'thumbnail': cover,
+            'published_date': '',
+            'page_count': 0,
+            'categories': ', '.join(item.get('subjects', [])[:3]),
+            'description': '',
+            'readable': True,
+            'ebook_access': 'public',
+            'read_url': html_url,
+            'source': 'gutenberg',
+        })
+
+    cache.set(cache_key, books, timeout=3600)
+    return Response({'results': books, 'source': 'api'})
+
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])

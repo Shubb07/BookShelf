@@ -35,8 +35,9 @@ export default function BookCard({ book, onAddToShelf, shelfStatus, onStatusChan
   const title = book.title || 'Unknown Title';
   const authors = book.authors || 'Unknown Author';
   const googleBookId = book.google_book_id || book.id || book.googleBookId;
-  const isOL = book.source === 'openlibrary';
-  const isReadable = isOL && book.readable;
+  // Readable when the source flagged it free to read and gave us a URL
+  // (works for both Open Library and Project Gutenberg).
+  const isReadable = book.readable && !!book.read_url;
   
   // Use real progress from backend (total_pages_read / page_count); 0 if not yet tracked
   const progressPercent = book.progress_percent || 0;

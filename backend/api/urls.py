@@ -8,7 +8,6 @@ from .views import (
     ReadingSessionView,
     ReviewListCreateView, MyReviewsView,
     discover, dashboard, open_library_lookup, open_library_search,
-    gutenberg_search,
 )
 
 urlpatterns = [
@@ -42,7 +41,4 @@ urlpatterns = [
     # Open Library (Read Books)
     path('books/open-library/', open_library_lookup, name='open_library_lookup'),
     path('books/open-library/search/', open_library_search, name='open_library_search'),
-
-    # Project Gutenberg (fully-free readable books)
-    path('books/gutenberg/search/', gutenberg_search, name='gutenberg_search'),
 ]

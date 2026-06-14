@@ -22,6 +22,9 @@ export default function ReaderPage() {
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualPageValue, setManualPageValue] = useState('');
 
+  // Quick "+pages" log
+  const [quickPages, setQuickPages] = useState('');
+
   // Save status indicator: null | 'saving' | 'saved' | 'error'
   const [saveStatus, setSaveStatus] = useState(null);
 
@@ -193,6 +196,20 @@ export default function ReaderPage() {
     await saveProgress(clamped);
   };
 
+  // ── Quick "+pages" log: add N pages to current progress and save now ─────
+  const handleQuickAdd = async (e) => {
+    e?.preventDefault();
+    const n = parseInt(quickPages, 10);
+    if (isNaN(n) || n < 1) return;
+    const newPage = currentPageRef.current + n;
+    const clamped = pageCount > 0 ? Math.min(newPage, pageCount) : newPage;
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current); // cancel pending debounce
+    handlePageChange(clamped);
+    setQuickPages('');
+    await saveProgress(clamped);
+  };
+
   // ── Helpers ───────────────────────────────────────────────────────────────
   const SaveIndicator = () => {
     if (!saveStatus) return null;
@@ -291,6 +308,37 @@ export default function ReaderPage() {
 
             {/* Save Status */}
             <SaveIndicator />
+
+            {/* Quick +pages log */}
+            <form onSubmit={handleQuickAdd} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              <input
+                type="number"
+                min={1}
+                value={quickPages}
+                onChange={e => setQuickPages(e.target.value)}
+                placeholder="+pages"
+                disabled={!shelfBookId}
+                title={shelfBookId ? 'Add pages you just read' : 'Add this book to your shelf to track progress'}
+                style={{
+                  width: '72px', background: 'var(--bg-base)',
+                  border: '1px solid var(--border-subtle)', borderRadius: '6px',
+                  padding: '6px 8px', color: 'var(--text-primary)', fontSize: '12px',
+                  fontWeight: 600, outline: 'none', opacity: shelfBookId ? 1 : 0.5,
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!shelfBookId || !quickPages}
+                style={{
+                  background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                  borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: 700,
+                  cursor: !shelfBookId || !quickPages ? 'not-allowed' : 'pointer',
+                  opacity: !shelfBookId || !quickPages ? 0.5 : 1,
+                }}
+              >
+                Log
+              </button>
+            </form>
 
             {/* Manual Set Page */}
             <div style={{ position: 'relative' }}>

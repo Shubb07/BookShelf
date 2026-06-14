@@ -147,16 +147,9 @@ export default function BookDetailPage() {
   return (
     <div className="page-enter">
       {/* Hero */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '200px 1fr', gap: '2rem',
-        marginBottom: '2rem', alignItems: 'flex-start',
-      }}>
+      <div className="book-detail-hero">
         {/* Cover */}
-        <div style={{
-          borderRadius: 'var(--radius-lg)', overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border)',
-          aspectRatio: '2/3', background: 'var(--bg-card)',
-        }}>
+        <div className="book-detail-cover">
           {thumbnail ? (
             <img src={thumbnail} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
@@ -307,7 +300,7 @@ export default function BookDetailPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="book-detail-columns">
         {/* Log Reading Session */}
         {shelfEntry && (
           <div className="card" style={{ padding: '1.5rem' }}>

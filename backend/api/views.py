@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -13,6 +15,8 @@ from .serializers import (
     RegisterSerializer, ProfileSerializer, UserBookSerializer,
     ReadingSessionSerializer, ReviewSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 GOOGLE_BOOKS_URL = 'https://www.googleapis.com/books/v1/volumes'
 
@@ -32,9 +36,10 @@ class RegisterView(generics.CreateAPIView):
                 {'message': 'User registered successfully.', 'username': user.username},
                 status=status.HTTP_201_CREATED,
             )
-        except Exception as exc:
+        except Exception:
+            logger.exception('Registration failed')
             return Response(
-                {'detail': 'Registration failed. Please try again.', 'error': str(exc)},
+                {'detail': 'Registration failed. Please try again.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -144,7 +149,9 @@ class ShelfListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        qs = UserBook.objects.filter(user=self.request.user)
+        qs = UserBook.objects.filter(user=self.request.user).annotate(
+            _pages_read=db_models.Sum('sessions__pages_read')
+        )
         status_filter = self.request.query_params.get('status')
         if status_filter:
             qs = qs.filter(status=status_filter)

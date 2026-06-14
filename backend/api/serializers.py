@@ -53,8 +53,20 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class UserBookSerializer(serializers.ModelSerializer):
-    total_pages_read = serializers.ReadOnlyField()
-    progress_percent = serializers.ReadOnlyField()
+    total_pages_read = serializers.SerializerMethodField()
+    progress_percent = serializers.SerializerMethodField()
+
+    def get_total_pages_read(self, obj):
+        # Use the annotated sum from the list query when available (avoids N+1),
+        # otherwise fall back to the model property.
+        annotated = getattr(obj, '_pages_read', None)
+        return annotated if annotated is not None else obj.total_pages_read
+
+    def get_progress_percent(self, obj):
+        pages = self.get_total_pages_read(obj)
+        if obj.page_count and obj.page_count > 0:
+            return min(round((pages / obj.page_count) * 100, 1), 100)
+        return 0
 
     class Meta:
         model = UserBook

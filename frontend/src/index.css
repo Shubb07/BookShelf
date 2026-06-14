@@ -176,6 +176,17 @@
   .app-layout { flex-direction: column; }
 }
 
+/* Reader loading spinner */
+@keyframes reader-spin { to { transform: rotate(360deg); } }
+.reader-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent-primary);
+  animation: reader-spin 0.8s linear infinite;
+}
+
 /* Book detail page layout */
 .book-detail-hero {
   display: grid;

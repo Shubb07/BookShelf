@@ -446,15 +446,17 @@ export default function ReaderPage() {
       </div>
 
       {/* ── Content Area ───────────────────────────────────────────────── */}
-      <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+      <div style={{ flex: 1, position: 'relative', background: 'var(--bg-base)' }}>
         {loading && (
           <div style={{
             position: 'absolute', inset: 0, display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            flexDirection: 'column', gap: '16px', background: 'var(--bg-base)',
+            flexDirection: 'column', gap: '20px', background: 'var(--bg-base)',
           }}>
-            <div className="shimmer" style={{ width: '48px', height: '64px', borderRadius: '4px' }} />
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading reading experience...</p>
+            <div className="reader-spinner" />
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 500 }}>
+              Opening “{bookTitle}”…
+            </p>
           </div>
         )}
 
@@ -462,16 +464,17 @@ export default function ReaderPage() {
           <div className="page-enter" style={{
             position: 'absolute', inset: 0, display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            flexDirection: 'column', gap: '16px', background: 'var(--bg-base)',
+            flexDirection: 'column', gap: '12px', background: 'var(--bg-base)', padding: '24px',
           }}>
-            <svg width="48" height="48" style={{ opacity: 0.3 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Not Available</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', textAlign: 'center' }}>
-              Only explicitly readable/borrowable books from the Internet Archive are accessible here.
+            <div style={{ fontSize: '40px' }}>📚</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700 }}>This book isn’t readable here</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '420px', textAlign: 'center', lineHeight: 1.6 }}>
+              Only public-domain books with a free full-text scan can be read in the app.
+              You can still add it to your library and track your progress manually.
             </p>
+            <button onClick={() => navigate(-1)} className="btn-primary" style={{ marginTop: '8px' }}>
+              ← Go back
+            </button>
           </div>
         )}
 
@@ -479,11 +482,24 @@ export default function ReaderPage() {
           <iframe
             src={readerData.read_url}
             title={`Read ${bookTitle}`}
-            style={{ width: '100%', height: '100%', border: 'none', background: '#000', display: 'block' }}
+            style={{ width: '100%', height: '100%', border: 'none', background: 'var(--bg-base)', display: 'block' }}
             allowFullScreen
           />
         )}
       </div>
+
+      {/* ── Help strip ──────────────────────────────────────────────────── */}
+      {readerData && !loading && !error && (
+        <div style={{
+          flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: '12px', padding: '8px 24px', background: 'var(--bg-surface)',
+          borderTop: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-muted)',
+          flexWrap: 'wrap',
+        }}>
+          <span>📖 Reading via the Internet Archive — use the page arrows inside the book to turn pages</span>
+          <span>Track your progress with <strong style={{ color: 'var(--text-secondary)' }}>+pages</strong> above</span>
+        </div>
+      )}
 
     </div>
   );

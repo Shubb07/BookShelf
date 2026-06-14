@@ -28,10 +28,11 @@ export default function SearchPage() {
         : `books/search/?q=${encodeURIComponent(query)}`;
       const res = await api.get(endpoint);
       let items = res.data.results || [];
-      // The "Read Free" tab only makes sense for books you can actually read,
-      // so drop non-readable editions (which are also the coverless duplicates).
+      // The "Read Free" tab only makes sense for books you can actually read in
+      // full with no login. "borrowable" books require an Archive.org account and
+      // only show a limited preview, so we keep just the public-domain ones.
       if (source === 'openlibrary') {
-        items = items.filter(b => b.readable);
+        items = items.filter(b => b.readable && b.ebook_access === 'public');
       }
       setResults(items);
     } catch {
@@ -160,8 +161,14 @@ export default function SearchPage() {
             <svg style={{ width: '48px', height: '48px', marginBottom: '16px', opacity: 0.5 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No matches found</p>
-            <p style={{ fontSize: '14px' }}>Check your spelling or try a broader term.</p>
+            <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              {source === 'openlibrary' ? 'No free copies found' : 'No matches found'}
+            </p>
+            <p style={{ fontSize: '14px', maxWidth: '380px', textAlign: 'center', lineHeight: 1.5 }}>
+              {source === 'openlibrary'
+                ? 'Only public-domain books can be read free without an account. Modern books usually aren’t available — try searching Google Books to add it to your library instead.'
+                : 'Check your spelling or try a broader term.'}
+            </p>
           </div>
         )}
 
